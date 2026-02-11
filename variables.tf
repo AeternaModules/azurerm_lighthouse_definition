@@ -36,19 +36,19 @@ EOT
     scope                    = string
     description              = optional(string)
     lighthouse_definition_id = optional(string)
-    authorization = object({
+    authorization = list(object({
       delegated_role_definition_ids = optional(set(string))
       principal_display_name        = optional(string)
       principal_id                  = string
       role_definition_id            = string
-    })
+    }))
     eligible_authorization = optional(object({
       just_in_time_access_policy = optional(object({
         approver = optional(object({
           principal_display_name = optional(string)
           principal_id           = string
         }))
-        maximum_activation_duration = optional(string, "PT8H")
+        maximum_activation_duration = optional(string) # Default: "PT8H"
         multi_factor_auth_provider  = optional(string)
       }))
       principal_display_name = optional(string)
@@ -62,5 +62,13 @@ EOT
       version   = string
     }))
   }))
+  validation {
+    condition = alltrue([
+      for k, v in var.lighthouse_definitions : (
+        length(v.authorization) >= 1
+      )
+    ])
+    error_message = "Each authorization list must contain at least 1 items"
+  }
 }
 

@@ -7,11 +7,14 @@ resource "azurerm_lighthouse_definition" "lighthouse_definitions" {
   description              = each.value.description
   lighthouse_definition_id = each.value.lighthouse_definition_id
 
-  authorization {
-    delegated_role_definition_ids = each.value.authorization.delegated_role_definition_ids
-    principal_display_name        = each.value.authorization.principal_display_name
-    principal_id                  = each.value.authorization.principal_id
-    role_definition_id            = each.value.authorization.role_definition_id
+  dynamic "authorization" {
+    for_each = each.value.authorization
+    content {
+      delegated_role_definition_ids = authorization.value.delegated_role_definition_ids
+      principal_display_name        = authorization.value.principal_display_name
+      principal_id                  = authorization.value.principal_id
+      role_definition_id            = authorization.value.role_definition_id
+    }
   }
 
   dynamic "eligible_authorization" {
