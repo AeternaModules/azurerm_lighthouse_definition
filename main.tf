@@ -18,13 +18,13 @@ resource "azurerm_lighthouse_definition" "lighthouse_definitions" {
   }
 
   dynamic "eligible_authorization" {
-    for_each = each.value.eligible_authorization != null ? [each.value.eligible_authorization] : []
+    for_each = each.value.eligible_authorization != null ? each.value.eligible_authorization : []
     content {
       dynamic "just_in_time_access_policy" {
         for_each = eligible_authorization.value.just_in_time_access_policy != null ? [eligible_authorization.value.just_in_time_access_policy] : []
         content {
           dynamic "approver" {
-            for_each = just_in_time_access_policy.value.approver != null ? [just_in_time_access_policy.value.approver] : []
+            for_each = just_in_time_access_policy.value.approver != null ? just_in_time_access_policy.value.approver : []
             content {
               principal_display_name = approver.value.principal_display_name
               principal_id           = approver.value.principal_id

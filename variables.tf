@@ -42,19 +42,19 @@ EOT
       principal_id                  = string
       role_definition_id            = string
     }))
-    eligible_authorization = optional(object({
+    eligible_authorization = optional(list(object({
       just_in_time_access_policy = optional(object({
-        approver = optional(object({
+        approver = optional(list(object({
           principal_display_name = optional(string)
           principal_id           = string
-        }))
+        })))
         maximum_activation_duration = optional(string) # Default: "PT8H"
         multi_factor_auth_provider  = optional(string)
       }))
       principal_display_name = optional(string)
       principal_id           = string
       role_definition_id     = string
-    }))
+    })))
     plan = optional(object({
       name      = string
       product   = string
@@ -70,106 +70,16 @@ EOT
     ])
     error_message = "Each authorization list must contain at least 1 items"
   }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        length(v.name) > 0
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", v.managing_tenant_id))
-      )
-    ])
-    error_message = "must be a valid UUID"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.eligible_authorization == null || (can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", v.eligible_authorization.principal_id)))
-      )
-    ])
-    error_message = "must be a valid UUID"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.eligible_authorization == null || (can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", v.eligible_authorization.role_definition_id)))
-      )
-    ])
-    error_message = "must be a valid UUID"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.eligible_authorization == null || (v.eligible_authorization.just_in_time_access_policy == null || (v.eligible_authorization.just_in_time_access_policy.approver == null || (can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", v.eligible_authorization.just_in_time_access_policy.approver.principal_id)))))
-      )
-    ])
-    error_message = "must be a valid UUID"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.eligible_authorization == null || (v.eligible_authorization.just_in_time_access_policy == null || (v.eligible_authorization.just_in_time_access_policy.approver == null || (v.eligible_authorization.just_in_time_access_policy.approver.principal_display_name == null || (length(v.eligible_authorization.just_in_time_access_policy.approver.principal_display_name) > 0))))
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.eligible_authorization == null || (v.eligible_authorization.principal_display_name == null || (length(v.eligible_authorization.principal_display_name) > 0))
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.lighthouse_definition_id == null || (can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", v.lighthouse_definition_id)))
-      )
-    ])
-    error_message = "must be a valid UUID"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.plan == null || (length(v.plan.name) > 0)
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.plan == null || (length(v.plan.publisher) > 0)
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.plan == null || (length(v.plan.product) > 0)
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.lighthouse_definitions : (
-        v.plan == null || (length(v.plan.version) > 0)
-      )
-    ])
-    error_message = "must not be empty"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_lighthouse_definition's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
   # Review, translate into a real validation{} block above, and delete once confirmed.
+  # path: name
+  #   condition: length(value) > 0
+  #   message:   must not be empty
+  # path: managing_tenant_id
+  #   condition: can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value))
+  #   message:   must be a valid UUID
   # path: scope
   #   source:    [from commonids.ValidateSubscriptionID] !ok
   # path: scope
@@ -186,11 +96,41 @@ EOT
   # path: authorization.delegated_role_definition_ids[*]
   #   condition: can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value))
   #   message:   must be a valid UUID
+  # path: eligible_authorization.principal_id
+  #   condition: can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value))
+  #   message:   must be a valid UUID
+  # path: eligible_authorization.role_definition_id
+  #   condition: can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value))
+  #   message:   must be a valid UUID
   # path: eligible_authorization.just_in_time_access_policy.multi_factor_auth_provider
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: eligible_authorization.just_in_time_access_policy.maximum_activation_duration
   #   source:    [from azValidate.ISO8601Duration] !ok
   # path: eligible_authorization.just_in_time_access_policy.maximum_activation_duration
   #   source:    [from azValidate.ISO8601Duration] err != nil
+  # path: eligible_authorization.just_in_time_access_policy.approver.principal_id
+  #   condition: can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value))
+  #   message:   must be a valid UUID
+  # path: eligible_authorization.just_in_time_access_policy.approver.principal_display_name
+  #   condition: length(value) > 0
+  #   message:   must not be empty
+  # path: eligible_authorization.principal_display_name
+  #   condition: length(value) > 0
+  #   message:   must not be empty
+  # path: lighthouse_definition_id
+  #   condition: can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value))
+  #   message:   must be a valid UUID
+  # path: plan.name
+  #   condition: length(value) > 0
+  #   message:   must not be empty
+  # path: plan.publisher
+  #   condition: length(value) > 0
+  #   message:   must not be empty
+  # path: plan.product
+  #   condition: length(value) > 0
+  #   message:   must not be empty
+  # path: plan.version
+  #   condition: length(value) > 0
+  #   message:   must not be empty
 }
 
