@@ -1,3 +1,7 @@
+output "lighthouse_definitions_id" {
+  description = "Map of id values across all lighthouse_definitions, keyed the same as var.lighthouse_definitions"
+  value       = { for k, v in azurerm_lighthouse_definition.lighthouse_definitions : k => v.id }
+}
 output "lighthouse_definitions_authorization" {
   description = "Map of authorization values across all lighthouse_definitions, keyed the same as var.lighthouse_definitions"
   value       = { for k, v in azurerm_lighthouse_definition.lighthouse_definitions : k => v.authorization }
