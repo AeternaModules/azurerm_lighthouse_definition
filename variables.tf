@@ -48,7 +48,7 @@ EOT
           principal_display_name = optional(string)
           principal_id           = string
         })))
-        maximum_activation_duration = optional(string) # Default: "PT8H"
+        maximum_activation_duration = optional(string)
         multi_factor_auth_provider  = optional(string)
       }))
       principal_display_name = optional(string)
