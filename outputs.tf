@@ -28,7 +28,7 @@ output "lighthouse_definitions_name" {
 }
 output "lighthouse_definitions_plan" {
   description = "Map of plan values across all lighthouse_definitions, keyed the same as var.lighthouse_definitions"
-  value       = { for k, v in azurerm_lighthouse_definition.lighthouse_definitions : k => v.plan if v.plan != null && length(v.plan) > 0 }
+  value       = { for k, v in azurerm_lighthouse_definition.lighthouse_definitions : k => one(v.plan) if v.plan != null && length(v.plan) > 0 }
 }
 output "lighthouse_definitions_scope" {
   description = "Map of scope values across all lighthouse_definitions, keyed the same as var.lighthouse_definitions"
